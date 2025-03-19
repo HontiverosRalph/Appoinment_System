@@ -54,14 +54,6 @@ const Register = () => {
 
           <form onSubmit={handleSubmit} className="w-full space-y-4 md:space-y-6">
             <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
-              required
-            />
-            <input
               type="email"
               placeholder="Email"
               value={email}

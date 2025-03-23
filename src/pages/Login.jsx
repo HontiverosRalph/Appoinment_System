@@ -4,7 +4,7 @@ import { FcGoogle } from "react-icons/fc";
 import loginBg from "../assets/images/bg.jpg"; // Adjust path if needed
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
@@ -15,10 +15,10 @@ const Login = () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    if (user && user.username === username && user.password === password) {
+    if (user && user.email === email && user.password === password) {
       localStorage.setItem("auth", "true");
       if (remember) {
-        localStorage.setItem("rememberedUser", JSON.stringify({ username, password }));
+        localStorage.setItem("rememberedUser", JSON.stringify({ email, password }));
       } else {
         localStorage.removeItem("rememberedUser");
       }
@@ -60,8 +60,8 @@ const Login = () => {
             <input
               type="text"
               placeholder="Email"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
               required
             />

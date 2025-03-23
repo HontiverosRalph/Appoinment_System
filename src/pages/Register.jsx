@@ -4,7 +4,6 @@ import { FcGoogle } from "react-icons/fc";
 import registerBg from "../assets/images/bg.jpg"; // Adjust path if needed
 
 const Register = () => {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,7 +18,7 @@ const Register = () => {
       return;
     }
 
-    const newUser = { username, email, password };
+    const newUser = { email, password };
     localStorage.setItem("user", JSON.stringify(newUser));
     navigate("/login"); // Redirect to login after successful registration
   };

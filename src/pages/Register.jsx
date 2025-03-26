@@ -4,6 +4,7 @@ import { FcGoogle } from "react-icons/fc";
 import registerBg from "../assets/images/bg.jpg"; // Adjust path if needed
 
 const Register = () => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,12 +13,17 @@ const Register = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-    const newUser = { password };
+    const newUser = { email, password };
     localStorage.setItem("user", JSON.stringify(newUser));
     navigate("/login"); // Redirect to login after successful registration
   };
@@ -51,6 +57,14 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="w-full space-y-4 md:space-y-6">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
+              required
+            />
             <input
               type="password"
               placeholder="Password"

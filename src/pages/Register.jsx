@@ -4,8 +4,6 @@ import { FcGoogle } from "react-icons/fc";
 import registerBg from "../assets/images/bg.jpg"; // Adjust path if needed
 
 const Register = () => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +17,7 @@ const Register = () => {
       return;
     }
 
-    const newUser = { username, email, password };
+    const newUser = { password };
     localStorage.setItem("user", JSON.stringify(newUser));
     navigate("/login"); // Redirect to login after successful registration
   };
@@ -43,7 +41,7 @@ const Register = () => {
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-8 md:px-16 shadow-2xl border border-gray-200 h-screen">
         <div className="w-full max-w-sm">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6 md:mb-8 text-gray-900 text-center md:text-left">
-            SIGN UP
+            CREATE ACCOUNT
           </h2>
 
           {error && (
@@ -53,22 +51,6 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="w-full space-y-4 md:space-y-6">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
-              required
-            />
             <input
               type="password"
               placeholder="Password"

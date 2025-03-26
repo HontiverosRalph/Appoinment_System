@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import loginBg from "../assets/images/bg.jpg"; // Adjust path if needed
+import loginBg from "../assets/images/bg.jpg";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
@@ -15,16 +15,16 @@ const Login = () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    if (user && user.username === username && user.password === password) {
+    if (user && user.email === email && user.password === password) {
       localStorage.setItem("auth", "true");
       if (remember) {
-        localStorage.setItem("rememberedUser", JSON.stringify({ username, password }));
+        localStorage.setItem("rememberedUser", JSON.stringify({ email, password }));
       } else {
         localStorage.removeItem("rememberedUser");
       }
       navigate("/admin");
     } else {
-      setError("Invalid credentials");
+      setError("Invalid email or password");
     }
   };
 
@@ -37,13 +37,13 @@ const Login = () => {
       {/* Image Section (Hidden on Mobile, Visible on Desktop) */}
       <div className="hidden md:flex w-1/2 h-full items-center justify-center shadow-lg">
         <img
-          src={loginBg} 
+          src={loginBg}
           alt="Login Illustration"
           className="w-full h-full object-cover"
         />
       </div>
 
-      {/* Login Form Section (Fully Centered on Mobile) */}
+      {/* Login Form Section */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-8 md:px-16 shadow-2xl border border-gray-200 h-screen">
         <div className="w-full max-w-sm">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6 md:mb-8 text-gray-900 text-center md:text-left">
@@ -58,16 +58,16 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="w-full space-y-4 md:space-y-6">
             <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
               required
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 md:p-4 text-md md:text-lg border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
@@ -83,7 +83,11 @@ const Login = () => {
                 />
                 Remember me
               </label>
-              <button className="text-blue-600 hover:underline transition duration-200 text-md md:text-lg">
+              <button
+                type="button"
+                className="text-blue-600 hover:underline transition duration-200 text-md md:text-lg"
+                onClick={() => navigate("/forgot-password")}
+              >
                 Forgot password?
               </button>
             </div>
@@ -111,7 +115,10 @@ const Login = () => {
 
           <p className="text-gray-700 text-md md:text-lg mt-6 md:mt-8 text-center">
             Don't have an account?{" "}
-            <button className="text-blue-600 font-semibold hover:underline transition duration-200">
+            <button
+              onClick={() => navigate("/register")}
+              className="text-blue-600 font-semibold hover:underline transition duration-200"
+            >
               Register
             </button>
           </p>

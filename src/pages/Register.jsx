@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; // Import icons
 import { signup } from "../api";
 import registerBg from "../assets/images/bg.jpg"; // Adjust path if needed
@@ -122,19 +121,6 @@ const Register = () => {
               Register
             </button>
           </form>
-
-          <div className="flex items-center my-6">
-            <div className="w-full border-t shadow-md"></div>
-            <span className="px-3 text-gray-500">OR</span>
-            <div className="w-full border-t shadow-md"></div>
-          </div>
-
-          <button
-            onClick={handleGoogleSignup}
-            className="w-full flex items-center justify-center border p-3 rounded-lg bg-white text-lg font-semibold shadow-lg hover:bg-gray-100 hover:scale-105 transition duration-300"
-          >
-            <FcGoogle className="mr-3 text-2xl" /> Sign Up with Google
-          </button>
 
           <p className="text-gray-700 text-md mt-6 text-center">
             Already have an account?{" "}

@@ -2,8 +2,8 @@ import axios from "axios";
 
 // Base API Configuration
 const API = axios.create({
-  baseURL: "http://localhost:8000/api", // Adjust for production
-  withCredentials: true, // Enable session cookies
+  baseURL: "http://localhost:8000/api", // Update for production
+  withCredentials: true, // Enables session cookies
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,8 +12,18 @@ const API = axios.create({
 // 🛠️ Error Handling Helper
 const handleError = (error, defaultMessage) => {
   console.error("API Error:", error.response || error);
+
+  // 🛑 Prevent clearing tokens unless explicitly an authentication issue
+  if (error.response?.status === 401 && error.response.data?.message.includes("Unauthorized")) {
+    console.warn("Auth issue detected. Redirecting to login...");
+    localStorage.removeItem("authToken"); // 🔥 Remove ONLY on auth errors
+    localStorage.removeItem("refreshToken");
+    window.location.href = "/login"; // 🔴 Redirect on auth failure
+  }
+
   return error.response?.data || { success: false, message: defaultMessage };
 };
+
 
 // 🟢 Signup API
 export const signup = async ({ email, password, confirmPassword }) => {
@@ -38,11 +48,16 @@ export const signin = async ({ email, password, rememberMe }) => {
       rememberMe,
     });
 
-    if (response.data.token) {
+    if (response.data.success) {
+      const { token, role } = response.data;
+
+      localStorage.setItem("auth", "true");
+      localStorage.setItem("userRole", role);
+
       if (rememberMe) {
-        localStorage.setItem("authToken", response.data.token); // Persistent login
+        localStorage.setItem("authToken", token);
       } else {
-        sessionStorage.setItem("authToken", response.data.token); // Temporary session login
+        sessionStorage.setItem("authToken", token);
       }
     }
 
@@ -52,18 +67,7 @@ export const signin = async ({ email, password, rememberMe }) => {
   }
 };
 
-// 🔴 Logout API
-export const signout = async () => {
-  try {
-    await API.post("/auth/signout");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("refreshToken");
-  } catch (error) {
-    console.error("Logout failed", error);
-  }
-};
-
-// 🟢 Fetch User Profile
+// 🟢 Fetch User Profile (Including Google OAuth Users)
 export const getUserProfile = async () => {
   try {
     const response = await API.get("/users/profile");
@@ -73,29 +77,40 @@ export const getUserProfile = async () => {
   }
 };
 
-// 🟢 Admin: Get all users
-export const getAllUsers = async () => {
+// 🟢 Google OAuth: Fetch Authenticated User
+export const getGoogleUser = async () => {
   try {
-    const response = await API.get("/users/all");
+    const response = await API.get("/auth/google/success");
+    
+    if (response.data.success) {
+      localStorage.setItem("auth", "true");
+      localStorage.setItem("userRole", response.data.role);
+    }
+    
     return response.data;
   } catch (error) {
-    return handleError(error, "Failed to fetch users. Contact support.");
+    return handleError(error, "Google login failed.");
+  }
+};
+
+// 🔴 Logout API
+export const signout = async () => {
+  try {
+    await API.post("/auth/signout");
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch (error) {
+    console.error("Logout failed", error);
   }
 };
 
 // 🟢 Forgot Password: Request Verification Code
 export const requestForgotPassword = async (email) => {
   try {
-    const response = await API.patch("/auth/send-forgot-password-code", {
-      email,
-    }); // Fixed route
+    const response = await API.patch("/auth/send-forgot-password-code", { email });
     return response.data;
   } catch (error) {
-    return {
-      success: false,
-      message:
-        error.response?.data?.message || "Failed to send verification code.",
-    };
+    return handleError(error, "Failed to send verification code.");
   }
 };
 
@@ -113,23 +128,12 @@ export const verifyForgotPassword = async (email, providedCode, newPassword) => 
   }
 };
 
-// 🟢 Test Backend Connection
-export const testConnection = async () => {
-  try {
-    const response = await API.get("/test");
-    console.log("✅ Backend is connected:", response.data);
-  } catch (error) {
-    console.error("❌ Cannot connect to backend:", error);
-  }
-};
-
 // 🟠 Token Refresh Logic
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // ❌ Only redirect to login if authentication fails (not validation errors)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
@@ -150,7 +154,7 @@ API.interceptors.response.use(
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
 
-        // ❌ Only redirect if the error is due to authentication
+        // ❌ The issue: It redirects to login on *any* error (even validation errors)
         if (error.response?.data?.message.includes("Unauthorized")) {
           window.location.href = "/login";
         }
@@ -162,6 +166,16 @@ API.interceptors.response.use(
 );
 
 
+
+// 🟢 Test Backend Connection
+export const testConnection = async () => {
+  try {
+    const response = await API.get("/test");
+    console.log("✅ Backend is connected:", response.data);
+  } catch (error) {
+    console.error("❌ Cannot connect to backend:", error);
+  }
+};
 
 
 export default API;

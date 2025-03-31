@@ -19,19 +19,29 @@ const ForgotPassword = () => {
     e.preventDefault();
     setMessage("");
     setError("");
-
+  
+    if (!email.trim()) {
+      setError("Please enter your email.");
+      return;
+    }
+  
     try {
       const response = await requestForgotPassword(email);
-      if (response.success) {
+  
+      if (response?.success) {
         setMessage("A verification code has been sent to your email.");
         setStep(2);
       } else {
-        setError(response.message || "Failed to send verification code.");
+        setError(response?.message || "Failed to send verification code.");
       }
     } catch (error) {
-      setError("Something went wrong. Please try again.");
+      console.error("Reset request error:", error);
+      
+      // ✅ Show error without triggering a redirect or logout
+      setError(error.response?.data?.message || "Something went wrong. Please try again.");
     }
   };
+  
 
   // Handle verifying code and resetting password
   const handleVerifyCodeAndReset = async (e) => {

@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import loginBg from "../assets/images/bg.jpg";
 
@@ -28,83 +28,68 @@ const Login = () => {
 
       if (response.data.success) {
         const { token, role } = response.data;
-        localStorage.setItem("auth", JSON.stringify(token));
+        localStorage.setItem("auth", "true");
         localStorage.setItem("userRole", role);
 
         if (remember) {
-          localStorage.setItem(
-            "rememberedUser",
-            JSON.stringify({ email, password })
-          );
+          localStorage.setItem("rememberedUser", JSON.stringify({ email, password }));
         } else {
           localStorage.removeItem("rememberedUser");
         }
 
-        if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "staff") {
-          navigate("/staff-dashboard");
-        } else {
-          navigate("/patient-dashboard");
-        }
+        navigate(role === "admin" ? "/admin-dashboard" : role === "staff" ? "/staff-dashboard" : "/patient-dashboard");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Google Authentication Handler
-  const handleGoogleLogin = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8000/api/auth/google",
-        { withCredentials: true }
-      );
+  // Google OAuth Login
+  const handleGoogleLogin = () => {
+  window.open("http://localhost:8000/auth/google", "_self"); // Redirect to Google OAuth
+};
 
-      if (response.data.success) {
-        const { token, role } = response.data;
-        localStorage.setItem("auth", JSON.stringify(token));
-        localStorage.setItem("userRole", role);
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+  const role = urlParams.get("role");
 
-        if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "staff") {
-          navigate("/staff-dashboard");
-        } else {
-          navigate("/patient-dashboard");
-        }
-      }
-    } catch (err) {
-      setError("Google login failed. Please try again.");
-    }
-  };
+  if (token) {
+    localStorage.setItem("authToken", token); // ✅ Save token
+    localStorage.setItem("userRole", role); // ✅ Save user role
+
+    // ✅ Redirect based on role
+    window.location.href =
+      role === "admin" ? "/admin-dashboard" :
+      role === "staff" ? "/staff-dashboard" :
+      "/patient-dashboard";
+  }
+}, []);
 
   return (
     <div className="flex h-screen">
+      {/* Left Image Section */}
       <div className="hidden md:flex w-1/2 h-full items-center justify-center shadow-lg">
         <img src={loginBg} alt="Login Illustration" className="w-full h-full object-cover" />
       </div>
+
+      {/* Login Form Section */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-8 md:px-16 shadow-2xl border border-gray-200 h-screen">
         <div className="w-full max-w-sm">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6 md:mb-8 text-gray-900 text-center md:text-left">
             SIGN IN
           </h2>
-          {error && (
-            <p className="text-red-600 text-md md:text-lg w-full text-center bg-red-100 p-3 md:p-4 rounded-lg shadow">
-              {error}
-            </p>
-          )}
-          <form onSubmit={handleSubmit} className="w-full space-y-4 md:space-y-6">
+          {error && <p className="text-red-600 text-md w-full text-center bg-red-100 p-3 rounded-lg">{error}</p>}
+
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 md:p-4 border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 transition duration-300"
+              className="w-full p-3 border rounded-lg bg-white shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500"
               required
             />
             <div className="relative w-full">
@@ -119,59 +104,56 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600"
               >
-                {showPassword ? (
-                  <AiOutlineEye size={22} />
-                ) : (
-                  <AiOutlineEyeInvisible size={22} />
-                )}
+                {showPassword ? <AiOutlineEye size={22} /> : <AiOutlineEyeInvisible size={22} />}
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-gray-700 text-md md:text-lg">
+            <div className="flex items-center justify-between text-gray-700">
               <label className="flex items-center">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={() => setRemember(!remember)}
-                  className="mr-2 accent-blue-600 w-4 h-4 md:w-5 md:h-5"
+                  className="mr-2 accent-blue-600"
                 />
                 Remember me
               </label>
               <button
                 type="button"
-                className="text-blue-600 hover:underline transition duration-200"
+                className="text-blue-600 hover:underline"
                 onClick={() => navigate("/forgot-password")}
               >
                 Forgot password?
               </button>
             </div>
+
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white p-3 md:p-4 rounded-lg font-semibold shadow-lg hover:bg-blue-700 hover:scale-[1.03] transition duration-300"
+              className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold shadow-lg hover:bg-blue-700 transition"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
-          <div className="flex items-center my-6 md:my-8 w-full">
+
+          <div className="flex items-center my-6 w-full">
             <div className="w-full border-t shadow-md"></div>
-            <span className="px-3 md:px-4 text-gray-500">OR</span>
+            <span className="px-3 text-gray-500">OR</span>
             <div className="w-full border-t shadow-md"></div>
           </div>
+
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center border p-3 md:p-4 rounded-lg bg-white text-lg md:text-xl font-semibold shadow-lg hover:bg-gray-100 hover:scale-[1.03] transition duration-300"
+            className="w-full flex items-center justify-center border p-3 rounded-lg bg-white font-semibold shadow-lg hover:bg-gray-100 transition"
           >
-            <FcGoogle className="mr-3 md:mr-4 text-2xl md:text-3xl" /> Continue with Google
+            <FcGoogle className="mr-3 text-2xl" /> Continue with Google
           </button>
-          <p className="text-gray-700 text-md md:text-lg mt-6 md:mt-8 text-center">
+
+          <p className="text-gray-700 mt-6 text-center">
             Don't have an account?{" "}
-            <button
-              onClick={() => navigate("/register")}
-              className="text-blue-600 font-semibold hover:underline transition duration-200"
-            >
+            <button onClick={() => navigate("/register")} className="text-blue-600 font-semibold hover:underline">
               Register
             </button>
           </p>

@@ -87,7 +87,7 @@ const PatientDashboard = () => {
         </div>
         
         {/* Status Cards */}
-        <div className="grid grid-cols-4 gap-4 mt-5">
+        <div className="grid grid-cols-4 gap-4 mt-5">``
           <div className="bg-white p-5 rounded-md shadow-md flex items-center justify-between">
             <div>
               <p className="text-lg font-bold">1</p>

@@ -1,36 +1,43 @@
-// import { useNavigate } from "react-router-dom";
-
-// const PatientDashboard = () => {
-//   const navigate = useNavigate();
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("auth");
-//     localStorage.removeItem("userRole");
-//     navigate("/login");
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-//       <h1 className="text-3xl font-bold mb-4">Patient Dashboard</h1>
-//       <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
-//         Logout
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default PatientDashboard;
-
 import { useNavigate } from "react-router-dom";
 import { FaUserMd, FaUserInjured, FaCalendarCheck, FaClock } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { signout } from "../api"; // Assuming signout function is available in your api.js
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
+  const [todayDate, setTodayDate] = useState("");
+  const [userRole, setUserRole] = useState(null);
+  const [appointments, setAppointments] = useState([]); // Placeholder for dynamic data
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("userRole");
-    navigate("/login");
+  useEffect(() => {
+    // Get the user's role from localStorage and check if they are authenticated
+    const role = localStorage.getItem("userRole");
+    const auth = localStorage.getItem("auth");
+
+    if (!auth || role !== "patient") {
+      // If not authenticated or not a patient, redirect to login
+      navigate("/login");
+    } else {
+      setUserRole(role);
+    }
+
+    // Get today's date for display
+    const date = new Date();
+    setTodayDate(date.toISOString().split('T')[0]); // Format as YYYY-MM-DD
+
+    // Fetch dynamic data (appointments) here, for now we use placeholder
+    // Example: setAppointments(fetchedAppointments);
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await signout(); // Call the signout API function to logout from the backend
+      localStorage.removeItem("auth");
+      localStorage.removeItem("userRole");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
@@ -50,21 +57,46 @@ const PatientDashboard = () => {
         </div>
         <nav className="mt-5">
           <ul>
-            <li className="p-2 bg-blue-100 rounded-md">🏠 Home</li>
-            <li className="p-2 mt-2 hover:bg-blue-50 cursor-pointer">👨‍⚕️ All Doctors</li>
-            <li className="p-2 mt-2 hover:bg-blue-50 cursor-pointer">📅 Scheduled Sessions</li>
-            <li className="p-2 mt-2 hover:bg-blue-50 cursor-pointer">📖 My Bookings</li>
-            <li className="p-2 mt-2 hover:bg-blue-50 cursor-pointer">⚙️ Settings</li>
+            <li 
+              className="p-2 bg-blue-100 rounded-md cursor-pointer"
+              onClick={() => navigate("/patient-dashboard")}
+            >
+              🏠 Home
+            </li>
+            <li 
+              className="p-2 mt-2 hover:bg-blue-50 cursor-pointer"
+              onClick={() => navigate("/doctors")}
+            >
+              👨‍⚕️ All Doctors
+            </li>
+            <li 
+              className="p-2 mt-2 hover:bg-blue-50 cursor-pointer"
+              onClick={() => navigate("/sessions")}
+            >
+              📅 Scheduled Sessions
+            </li>
+            <li 
+              className="p-2 mt-2 hover:bg-blue-50 cursor-pointer"
+              onClick={() => navigate("/my-bookings")}
+            >
+              📖 My Bookings
+            </li>
+            <li 
+              className="p-2 mt-2 hover:bg-blue-50 cursor-pointer"
+              onClick={() => navigate("/settings")}
+            >
+              ⚙️ Settings
+            </li>
           </ul>
         </nav>
       </aside>
-      
+
       {/* Main Content */}
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Home</h1>
           <div className="bg-white p-3 rounded-md shadow text-gray-600 flex items-center">
-            📅 <span className="ml-2">Today's Date: 2022-06-03</span>
+            📅 <span className="ml-2">Today's Date: {todayDate}</span>
           </div>
         </div>
         
@@ -87,18 +119,18 @@ const PatientDashboard = () => {
         </div>
         
         {/* Status Cards */}
-        <div className="grid grid-cols-4 gap-4 mt-5">``
+        <div className="grid grid-cols-4 gap-4 mt-5">
           <div className="bg-white p-5 rounded-md shadow-md flex items-center justify-between">
             <div>
-              <p className="text-lg font-bold">1</p>
+              <p className="text-lg font-bold">{appointments.length}</p>
               <p className="text-gray-600">All Doctors</p>
             </div>
             <FaUserMd className="text-blue-500 text-2xl" />
           </div>
           <div className="bg-white p-5 rounded-md shadow-md flex items-center justify-between">
             <div>
-              <p className="text-lg font-bold">2</p>
-              <p className="text-gray-600">All Patients</p>
+              <p className="text-lg font-bold">{appointments.length}</p>
+              <p className="text-gray-600">My Appointments</p>
             </div>
             <FaUserInjured className="text-blue-500 text-2xl" />
           </div>
@@ -132,12 +164,20 @@ const PatientDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="p-2">1</td>
-                  <td className="p-2">Test Session</td>
-                  <td className="p-2">Test Doctor</td>
-                  <td className="p-2">2050-01-01 18:00</td>
-                </tr>
+                {appointments.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center p-4">No upcoming bookings</td>
+                  </tr>
+                ) : (
+                  appointments.map((appointment) => (
+                    <tr key={appointment.id}>
+                      <td className="p-2">{appointment.appointmentNumber}</td>
+                      <td className="p-2">{appointment.sessionTitle}</td>
+                      <td className="p-2">{appointment.doctor}</td>
+                      <td className="p-2">{appointment.scheduledTime}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

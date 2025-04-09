@@ -14,6 +14,32 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Check for remembered user credentials in localStorage
+    const remembered = localStorage.getItem("rememberedUser");
+    if (remembered) {
+      const { email, password } = JSON.parse(remembered);
+      setEmail(email);
+      setPassword(password);
+      setRemember(true);
+    }
+
+    // Check the query parameters in the URL to see if we need to set roles directly
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get("role");
+
+    if (role) {
+      // Save the role directly in localStorage for redirection
+      localStorage.setItem("auth", "true");
+      localStorage.setItem("userRole", role);
+
+      // Redirect to respective dashboard based on role
+      navigate(role === "admin" ? "/admin-dashboard" :
+               role === "doctor" ? "/staff-dashboard" :
+               "/patient-dashboard");
+    }
+  }, [navigate]);  // Make sure navigate is included as a dependency
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -27,17 +53,25 @@ const Login = () => {
       );
 
       if (response.data.success) {
-        const { token, role } = response.data;
+        const { role } = response.data;
+
+        // Save basic login state
         localStorage.setItem("auth", "true");
         localStorage.setItem("userRole", role);
 
+        // Save credentials if "remember me" is checked
         if (remember) {
           localStorage.setItem("rememberedUser", JSON.stringify({ email, password }));
         } else {
           localStorage.removeItem("rememberedUser");
         }
 
-        navigate(role === "admin" ? "/admin-dashboard" : role === "staff" ? "/staff-dashboard" : "/patient-dashboard");
+        // Navigate based on user role after login
+        navigate(
+          role === "admin" ? "/admin-dashboard" :
+          role === "doctor" ? "/staff-dashboard" :
+          "/patient-dashboard"
+        );
       }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
@@ -46,42 +80,29 @@ const Login = () => {
     }
   };
 
-  // Google OAuth Login
   const handleGoogleLogin = () => {
-  window.open("http://localhost:8000/auth/google", "_self"); // Redirect to Google OAuth
-};
-
-useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
-  const role = urlParams.get("role");
-
-  if (token) {
-    localStorage.setItem("authToken", token); // ✅ Save token
-    localStorage.setItem("userRole", role); // ✅ Save user role
-
-    // ✅ Redirect based on role
-    window.location.href =
-      role === "admin" ? "/admin-dashboard" :
-      role === "staff" ? "/staff-dashboard" :
-      "/patient-dashboard";
-  }
-}, []);
+    window.open("http://localhost:8000/auth/google", "_self");
+  };
 
   return (
     <div className="flex h-screen">
-      {/* Left Image Section */}
+      {/* Left Image */}
       <div className="hidden md:flex w-1/2 h-full items-center justify-center shadow-lg">
         <img src={loginBg} alt="Login Illustration" className="w-full h-full object-cover" />
       </div>
 
-      {/* Login Form Section */}
+      {/* Right Login Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-8 md:px-16 shadow-2xl border border-gray-200 h-screen">
         <div className="w-full max-w-sm">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6 md:mb-8 text-gray-900 text-center md:text-left">
             SIGN IN
           </h2>
-          {error && <p className="text-red-600 text-md w-full text-center bg-red-100 p-3 rounded-lg">{error}</p>}
+
+          {error && (
+            <p className="text-red-600 text-md w-full text-center bg-red-100 p-3 rounded-lg">
+              {error}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="w-full space-y-4">
             <input

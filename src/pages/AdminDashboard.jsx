@@ -1,37 +1,26 @@
-// import { useNavigate } from "react-router-dom";
-
-// const AdminDashboard = () => {
-//   const navigate = useNavigate();
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("auth");
-//     localStorage.removeItem("userRole");
-//     navigate("/login");
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-//       <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
-//       <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
-//         Logout
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default AdminDashboard;
-
-
 import { useNavigate } from "react-router-dom";
 import { FaUserMd, FaUsers, FaCalendarPlus, FaCalendarDay } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { signout } from "../api"; // Assuming signout function is available in your api.js
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [todayDate, setTodayDate] = useState("");
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("userRole");
-    navigate("/login");
+  useEffect(() => {
+    const date = new Date();
+    setTodayDate(date.toISOString().split('T')[0]); // Format as YYYY-MM-DD
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signout(); // Call the signout API function to logout from the backend
+      localStorage.removeItem("auth");
+      localStorage.removeItem("userRole");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
@@ -54,11 +43,11 @@ const AdminDashboard = () => {
           Log out
         </button>
         <ul className="space-y-4">
-          <li><button className="text-blue-600 font-semibold">Dashboard</button></li>
-          <li><button>Doctors</button></li>
-          <li><button>Schedule</button></li>
-          <li><button>Appointment</button></li>
-          <li><button>Patients</button></li>
+          <li><button onClick={() => navigate("/admin-dashboard")} className="text-blue-600 font-semibold">Dashboard</button></li>
+          <li><button onClick={() => navigate("/doctors")} className="text-blue-600">Doctors</button></li>
+          <li><button onClick={() => navigate("/schedule")} className="text-blue-600">Schedule</button></li>
+          <li><button onClick={() => navigate("/appointments")} className="text-blue-600">Appointment</button></li>
+          <li><button onClick={() => navigate("/patients")} className="text-blue-600">Patients</button></li>
         </ul>
       </div>
 
@@ -71,7 +60,7 @@ const AdminDashboard = () => {
             className="border p-2 rounded w-1/2"
           />
           <button className="bg-blue-500 text-white px-4 py-2 rounded">Search</button>
-          <p className="text-gray-500">Today's Date: 2022-06-03</p>
+          <p className="text-gray-500">Today's Date: {todayDate}</p>
         </div>
 
         {/* Status Cards */}
